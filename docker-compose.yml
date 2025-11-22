@@ -1,0 +1,51 @@
+version: "3.9"
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: pr-reviewer-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: postgres
+    ports:
+      - "5440:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+
+  app:
+    build: .
+    container_name: pr-reviewer-app
+    restart: unless-stopped
+    depends_on:
+      - postgres
+    environment:
+      HTTP_PORT: "8080"
+      ENV: "prod"
+      DB_DSN: "postgres://postgres:postgres@postgres:5432/postgres?sslmode=disable"
+    ports:
+      - "8080:8080"
+    logging:
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  swagger-ui:
+    image: swaggerapi/swagger-ui
+    container_name: pr-reviewer-swagger
+    restart: unless-stopped
+    ports:
+      - "8081:8080"
+    environment:
+      # Говорим Swagger UI, откуда брать спецификацию
+      URL: /openapi.yaml
+    volumes:
+      # Монтируем openapi.yaml из корня проекта туда,
+      # откуда nginx его пытается прочитать
+      - ./openapi.yaml:/usr/share/nginx/html/openapi.yaml:ro
+    depends_on:
+      - app
+
+volumes:
+  postgres-data:

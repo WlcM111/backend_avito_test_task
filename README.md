@@ -97,7 +97,7 @@
 ## 1.1 Клонировать репозиторий
 
 ```bash       
-git clone <URL_ВАШЕГО_РЕПОЗИТОРИЯ> pr-reviewer-service
+git clone https://github.com/WlcM111/backend_avito_test_task.git
 cd pr-reviewer-service
 ```
 
@@ -109,54 +109,6 @@ docker-compose up --build
 ## 1.3 Проверить, что сервис работает
 ```bash
 curl http://localhost:8080/health
-```
-
-
-# Вариант 2 — запуск локально (Go + PostgreSQL в Docker)
-
-## 2.1 Клонировать репозиторий
-```bash
-git clone <URL_ВАШЕГО_РЕПОЗИТОРИЯ> pr-reviewer-service
-cd pr-reviewer-service
-```
-
-## 2.2 Поднять PostgreSQL в отдельном контейнере
-```bash
-docker run -d \
-  --name pr-reviewer-postgres-local \
-  -e POSTGRES_USER=postgres \
-  -e POSTGRES_PASSWORD=postgres \
-  -e POSTGRES_DB=postgres \
-  -p 5432:5432 \
-  postgres:16-alpine
-```
-
-## 2.3 Настроить переменные окружения для сервиса
-```bash
-export DB_DSN="postgres://postgres:postgres@localhost:5432/postgres?sslmode=disable"
-export HTTP_PORT="8080"
-export ENV="dev"
-```
-
-## 2.4 Запустить сервис локально
-```bash
-go run ./cmd/server
-```
-
-## 2.5 Проверить, что сервис работает
-```bash
-curl http://localhost:8080/health
-```
-
-## 2.6 Запустить все тесты (включая e2e)
-```bash
-go test ./...
-```
-
-## 2.7 Запустить только e2e-тесты
-
-```bash
-go test ./test/e2e -v      
 ```
 
 ## Линтер

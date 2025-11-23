@@ -188,14 +188,19 @@ golangci-lint run ./...
   - `/pullRequest/create`
   - `/pullRequest/merge`
 
-Команда:
+Для того чтобы запустить нагрузочное тестирование, нужно выполнить данную команду из корня проекта:
 ```bash
-k6 run load/k6_pr_service.js
+docker run --rm -i \
+  --network pr-reviewer-service_default \
+  -e BASE_URL=http://app:8080 \
+  -v "$(pwd)/load:/scripts" \
+  grafana/k6 run /scripts/loadtest.js
+
 ```
 
 ## Swagger / OpenAPI
 
-Для сервиса описана OpenAPI-схема в файле `openapi.yml`.  
+Для сервиса описана OpenAPI-схема в файле `openapi.yaml`.  
 Документация доступна через Swagger UI в отдельном контейнере на порту 8081 на localhost.
 
 ### Как запустить
@@ -206,4 +211,35 @@ k6 run load/k6_pr_service.js
 docker compose up --build
 # или
 docker-compose up --build
+```
+
+## End-to-End тесты (E2E)
+
+В проекте есть полноценные end-to-end тесты, которые поднимают HTTP-сервер в памяти и ходят в реальные репозитории и PostgreSQL.
+
+Файл с тестами:  
+`test/e2e/e2e_test.go`
+
+### Подготовка БД
+
+E2E-тесты используют отдельную БД PostgreSQL.  
+DSN для подключения берётся из переменной окружения `TEST_DB_DSN`.
+
+Лучше всего использовать следующий вариант:
+
+```bash
+export TEST_DB_DSN="postgres://postgres:postgres@localhost:5432/postgres?sslmode=disable"
+
+docker run -d \
+  --name pr-reviewer-postgres-test \
+  -e POSTGRES_USER=postgres \
+  -e POSTGRES_PASSWORD=postgres \
+  -e POSTGRES_DB=postgres \
+  -p 5432:5432 \
+  postgres:16-alpine
+```
+
+Затем для запуска тестов - выполните:
+```bash
+go test ./test/e2e -v
 ```
